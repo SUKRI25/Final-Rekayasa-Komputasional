@@ -1,0 +1,239 @@
+{
+  "application": {
+    "name": "Sistem Rekomendasi Film - Content-Based Filtering + Genetic Algorithm",
+    "version": "1.0.0",
+    "author": "Rekayasa Komputasional - Universitas Muhammadiyah Makassar",
+    "year": 2026,
+    "lastUpdated": "2026-07-21"
+  },
+
+  "defaultParameters": {
+    "geneticAlgorithm": {
+      "populationSize": 20,
+      "generations": 20,
+      "mutationRate": 0.20,
+      "crossoverRate": 0.80,
+      "elitismRate": 0.10,
+      "tournamentSize": 3
+    },
+    "dataLoading": {
+      "maxMovies": 5000,
+      "movieSearchLimit": 100,
+      "topRecommendations": 10
+    },
+    "ui": {
+      "defaultTab": "results",
+      "chartsAnimationDuration": 500,
+      "progressUpdateInterval": 100
+    }
+  },
+
+  "presetConfigurations": {
+    "quickTest": {
+      "name": "Quick Test (Tercepat)",
+      "description": "Untuk testing cepat dan demo (3-5 detik)",
+      "populationSize": 10,
+      "generations": 10,
+      "mutationRate": 0.25,
+      "crossoverRate": 0.75,
+      "elitismRate": 0.05
+    },
+    "balanced": {
+      "name": "Balanced (Default)",
+      "description": "Balance antara kecepatan dan kualitas (10-15 detik)",
+      "populationSize": 20,
+      "generations": 20,
+      "mutationRate": 0.20,
+      "crossoverRate": 0.80,
+      "elitismRate": 0.10
+    },
+    "optimized": {
+      "name": "Optimized (Terbaik)",
+      "description": "Hasil terbaik dengan waktu lebih lama (30-45 detik)",
+      "populationSize": 50,
+      "generations": 50,
+      "mutationRate": 0.20,
+      "crossoverRate": 0.80,
+      "elitismRate": 0.15
+    },
+    "exploration": {
+      "name": "Exploration (Eksplorasi)",
+      "description": "Tinggi mutasi untuk explore solusi (15-25 detik)",
+      "populationSize": 30,
+      "generations": 30,
+      "mutationRate": 0.50,
+      "crossoverRate": 0.50,
+      "elitismRate": 0.08
+    },
+    "convergence": {
+      "name": "Convergence (Konvergen Cepat)",
+      "description": "Elitism tinggi untuk konvergen cepat (8-12 detik)",
+      "populationSize": 15,
+      "generations": 15,
+      "mutationRate": 0.10,
+      "crossoverRate": 0.90,
+      "elitismRate": 0.25
+    }
+  },
+
+  "genres": [
+    "Action",
+    "Adventure",
+    "Animation",
+    "Children",
+    "Comedy",
+    "Crime",
+    "Documentary",
+    "Drama",
+    "Fantasy",
+    "Film-Noir",
+    "Horror",
+    "IMAX",
+    "Musical",
+    "Mystery",
+    "Romance",
+    "Sci-Fi",
+    "Thriller",
+    "War",
+    "Western"
+  ],
+
+  "methods": {
+    "contentBasedFiltering": {
+      "name": "Content-Based Filtering",
+      "description": "Merekomendasikan item berdasarkan kesamaan fitur dengan item referensi",
+      "advantages": [
+        "Tidak butuh user ratings",
+        "Cocok untuk cold-start problem",
+        "Interpretable weights"
+      ],
+      "disadvantages": [
+        "Limited diversity",
+        "Requires good feature extraction",
+        "Cannot explore new user preferences"
+      ]
+    },
+    "cosineSimilarity": {
+      "name": "Cosine Similarity",
+      "formula": "(A · B) / (||A|| × ||B||)",
+      "range": "0 (tidak sama) hingga 1 (identik)",
+      "advantages": [
+        "Magnitude invariant",
+        "Fast computation O(n)",
+        "Interpretable result",
+        "Good for sparse data"
+      ]
+    },
+    "geneticAlgorithm": {
+      "name": "Genetic Algorithm",
+      "description": "Evolusi-inspired optimization untuk menemukan bobot genre optimal",
+      "components": {
+        "individual": "Vektor bobot genre (0-1)",
+        "fitness": "Average cosine similarity dari top-10 rekomendasi",
+        "selection": "Tournament Selection (k=3)",
+        "crossover": "Uniform Crossover (50% dari masing parent)",
+        "mutation": "Gaussian Mutation dengan std deviation 0.1",
+        "elitism": "Pertahankan top k% individu terbaik"
+      },
+      "advantages": [
+        "Non-convex optimization",
+        "Handle multiple local optima",
+        "No derivative needed",
+        "Flexible dan customizable"
+      ]
+    }
+  },
+
+  "performance": {
+    "expectedTiming": {
+      "populationSize": {
+        "10": "2-3 seconds",
+        "20": "5-8 seconds",
+        "30": "10-15 seconds",
+        "50": "20-35 seconds"
+      },
+      "generations": {
+        "10": "multiplicative 0.5x-1x",
+        "20": "multiplicative 1x-2x",
+        "30": "multiplicative 1.5x-3x",
+        "50": "multiplicative 2.5x-5x"
+      }
+    },
+    "memoryUsage": {
+      "dataLoader": "~1-2 MB",
+      "geneticAlgorithm": "~2-5 MB",
+      "chartJs": "~0.5 MB",
+      "ui": "~0.5 MB",
+      "total": "~5-10 MB"
+    },
+    "browserCompatibility": {
+      "Chrome": "Full support ✓",
+      "Firefox": "Full support ✓",
+      "Edge": "Full support ✓",
+      "Safari": "Full support ✓",
+      "IE11": "Not supported ✗"
+    }
+  },
+
+  "dataFormat": {
+    "csv": {
+      "delimiter": ",",
+      "quote": "\"",
+      "fields": [
+        "movieId (integer)",
+        "title (string with year in parentheses)",
+        "genres (pipe-separated string)"
+      ],
+      "example": "1,Toy Story (1995),Adventure|Animation|Children|Comedy|Fantasy"
+    }
+  },
+
+  "references": {
+    "academic": [
+      {
+        "authors": "F. Maxwell Harper and Joseph A. Konstan",
+        "year": 2015,
+        "title": "The MovieLens Datasets: History and Context",
+        "journal": "ACM Transactions on Interactive Intelligent Systems"
+      },
+      {
+        "authors": "Pang-Ning Tan, Michael Steinbach, Vipin Kumar",
+        "year": 2005,
+        "title": "Introduction to Data Mining",
+        "publisher": "Pearson Education"
+      },
+      {
+        "authors": "David E. Goldberg",
+        "year": 1989,
+        "title": "Genetic Algorithms in Search, Optimization, and Machine Learning",
+        "publisher": "Addison-Wesley"
+      }
+    ],
+    "online": [
+      {
+        "name": "MovieLens Dataset",
+        "url": "https://grouplens.org/datasets/"
+      },
+      {
+        "name": "Content-Based Filtering",
+        "url": "https://en.wikipedia.org/wiki/Recommender_system"
+      },
+      {
+        "name": "Genetic Algorithm",
+        "url": "https://en.wikipedia.org/wiki/Genetic_algorithm"
+      }
+    ]
+  },
+
+  "keywords": [
+    "Film Recommendation",
+    "Content-Based Filtering",
+    "Cosine Similarity",
+    "Genetic Algorithm",
+    "Machine Learning",
+    "Optimization",
+    "Information Retrieval",
+    "Web Application",
+    "Interactive System"
+  ]
+}

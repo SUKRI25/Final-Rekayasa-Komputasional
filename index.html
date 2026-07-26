@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimasi Sistem Rekomendasi Film - Content-Based Filtering + GA</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .chart-subtitle {
+            margin: 0 0 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #4a5568;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🎬 Sistem Rekomendasi Film</h1>
+                <p class="subtitle">Content-Based Filtering (Cosine Similarity) dengan Optimasi Genetic Algorithm</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Sidebar - Kontrol GA dan Input -->
+            <aside class="sidebar">
+                <section class="section">
+                    <h2>⚙️ Konfigurasi Genetic Algorithm</h2>
+                    
+                    <div class="form-group">
+                        <label for="populationSize">Ukuran Populasi:</label>
+                        <input type="number" id="populationSize" min="5" max="100" value="20">
+                        <span class="help-text">Jumlah individu dalam populasi</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="generations">Jumlah Generasi:</label>
+                        <input type="number" id="generations" min="1" max="100" value="20">
+                        <span class="help-text">Iterasi evolusi GA</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mutationRate">Tingkat Mutasi (%):</label>
+                        <input type="number" id="mutationRate" min="0.1" max="100" step="0.1" value="20">
+                        <span class="help-text">Peluang mutasi gen (0-100%)</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="crossoverRate">Tingkat Crossover (%):</label>
+                        <input type="number" id="crossoverRate" min="0.1" max="100" step="0.1" value="80">
+                        <span class="help-text">Peluang crossover (0-100%)</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="elitismRate">Elitism (%):</label>
+                        <input type="number" id="elitismRate" min="1" max="50" step="1" value="10">
+                        <span class="help-text">Persentase individu terbaik yang dipertahankan</span>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <h2>🎯 Pilih Film Referensi</h2>
+                    
+                    <div class="form-group">
+                        <input type="text" id="movieSearch" placeholder="Ketik judul atau genre, contoh: action" class="search-input">
+                        <span class="help-text">Contoh: ketik "action" untuk melihat film-film bergenre Action</span>
+                    </div>
+                    
+                    <div id="moviesList" class="movies-list">
+                        <p class="loading-text">Memuat daftar film...</p>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <button id="optimizeBtn" class="btn btn-primary btn-block">
+                        🚀 Jalankan Optimasi GA
+                    </button>
+                    <button id="resetBtn" class="btn btn-secondary btn-block">
+                        🔄 Reset
+                    </button>
+                </section>
+            </aside>
+
+            <!-- Content Area -->
+            <section class="content">
+                <!-- Tabs Navigation -->
+                <div class="tabs-navigation">
+                    <button class="tab-btn active" data-tab="results">Hasil Rekomendasi</button>
+                    <button class="tab-btn" data-tab="weights">Bobot Fitur Optimal</button>
+                    <button class="tab-btn" data-tab="evolution">Evolusi GA</button>
+                    <button class="tab-btn" data-tab="comparison">Sebelum vs Sesudah</button>
+                    <button class="tab-btn" data-tab="info">Informasi</button>
+                </div>
+
+                <!-- Tab: Hasil Rekomendasi -->
+                <div id="results" class="tab-content active">
+                    <div class="selected-movie-info">
+                        <h3>Film yang Dipilih:</h3>
+                        <div id="selectedMovieDisplay" class="movie-display">
+                            <p class="empty-state">Belum ada film yang dipilih</p>
+                        </div>
+                    </div>
+
+                    <div class="recommendations-container">
+                        <h3>Top 10 Rekomendasi Film</h3>
+                        <div id="recommendationsList" class="recommendations-list">
+                            <p class="empty-state">Jalankan optimasi GA untuk mendapatkan rekomendasi</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Bobot Fitur Optimal -->
+                <div id="weights" class="tab-content">
+                    <div class="weights-container">
+                        <h3>Bobot Genre Optimal (Hasil GA)</h3>
+                        
+                        <div class="weights-info">
+                            <p><strong>Fitness Score:</strong> <span id="fitnessScore">-</span></p>
+                            <p><strong>Generasi Konvergen:</strong> <span id="convergeGeneration">-</span></p>
+                            <p><strong>Waktu Eksekusi:</strong> <span id="executionTime">-</span></p>
+                        </div>
+
+                        <div id="weightsList" class="weights-list">
+                            <p class="empty-state">Jalankan optimasi GA untuk melihat bobot optimal</p>
+                        </div>
+
+                        <div class="chart-container">
+                            <h4 class="chart-subtitle">Distribusi Bobot Seluruh Genre</h4>
+                            <canvas id="weightsDistributionChart" style="max-width: 100%; height: auto;"></canvas>
+                        </div>
+
+                        <div class="chart-container">
+                            <h4 class="chart-subtitle">Top 15 Bobot Genre Optimal</h4>
+                            <canvas id="weightsChart" style="max-width: 100%; height: auto;"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Evolusi GA -->
+                <div id="evolution" class="tab-content">
+                    <div class="evolution-container">
+                        <h3>Kurva Evolusi Fitness</h3>
+                        <p class="help-text">Grafik menunjukkan peningkatan fitness score sepanjang generasi</p>
+
+                        <div class="chart-container">
+                            <h4 class="chart-subtitle">Tren Konvergensi Best Fitness</h4>
+                            <canvas id="convergenceTrendChart" style="max-width: 100%; height: auto;"></canvas>
+                        </div>
+
+                        <div class="chart-container">
+                            <h4 class="chart-subtitle">Perbandingan Best / Average / Worst Fitness</h4>
+                            <canvas id="evolutionChart" style="max-width: 100%; height: auto;"></canvas>
+                        </div>
+                        
+                        <div class="evolution-stats">
+                            <div class="stat-card">
+                                <h4>Fitness Awal</h4>
+                                <p id="initialFitness">-</p>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Fitness Akhir</h4>
+                                <p id="finalFitness">-</p>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Peningkatan</h4>
+                                <p id="fitnessImprovement">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Sebelum vs Sesudah -->
+                <div id="comparison" class="tab-content">
+                    <div class="comparison-container">
+                        <h3>Perbandingan Sebelum vs Sesudah Optimasi GA</h3>
+                        <p class="help-text">Membandingkan rekomendasi menggunakan bobot genre setara/rata (sebelum optimasi) dengan bobot hasil optimasi GA (sesudah optimasi)</p>
+
+                        <div class="chart-container">
+                            <canvas id="comparisonChart" style="max-width: 100%; height: auto;"></canvas>
+                        </div>
+
+                        <div id="comparisonContent" class="comparison-content">
+                            <p class="empty-state">Jalankan optimasi GA untuk melihat perbandingan</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Informasi -->
+                <div id="info" class="tab-content">
+                    <div class="info-container">
+                        <h3>📚 Tentang Sistem Ini</h3>
+                        
+                        <div class="info-section">
+                            <h4>Metode Content-Based Filtering</h4>
+                            <p>Sistem ini menggunakan pendekatan Content-Based Filtering untuk merekomendasikan film berdasarkan kemiripan konten (genre) dengan film yang dipilih pengguna.</p>
+                            
+                            <h5>Cosine Similarity</h5>
+                            <p>Setiap film direpresentasikan sebagai vektor genre. Kemiripan antara dua film dihitung menggunakan formula:</p>
+                            <code>
+                                similarity = (A · B) / (||A|| × ||B||)
+                            </code>
+                            <p>Dimana A dan B adalah vektor genre dengan bobot tertentu.</p>
+                        </div>
+
+                        <div class="info-section">
+                            <h4>Optimasi Genetic Algorithm</h4>
+                            <p>GA digunakan untuk menemukan bobot optimal untuk setiap genre, sehingga rekomendasi lebih akurat sesuai preferensi pengguna.</p>
+                            
+                            <h5>Komponen GA:</h5>
+                            <ul>
+                                <li><strong>Individu:</strong> Vektor bobot genre (0-1)</li>
+                                <li><strong>Fitness Function:</strong> Rata-rata cosine similarity top-10 rekomendasi</li>
+                                <li><strong>Selection:</strong> Tournament selection</li>
+                                <li><strong>Crossover:</strong> Uniform crossover</li>
+                                <li><strong>Mutation:</strong> Gaussian mutation</li>
+                                <li><strong>Elitism:</strong> Mempertahankan individu terbaik</li>
+                            </ul>
+                        </div>
+
+                        <div class="info-section">
+                            <h4>Dataset</h4>
+                            <p><strong>Sumber:</strong> MovieLens 32M Dataset</p>
+                            <p><strong>Jumlah Film:</strong> 87,585 film</p>
+                            <p><strong>Genre:</strong> 20 genre utama</p>
+                            <p><strong>Rating:</strong> 32 juta rating dari 200K pengguna</p>
+                        </div>
+
+                        <div class="info-section">
+                            <h4>Cara Menggunakan</h4>
+                            <ol>
+                                <li>Sesuaikan parameter GA di sisi kiri (opsional)</li>
+                                <li>Cari dan pilih film referensi dari daftar</li>
+                                <li>Klik tombol "Jalankan Optimasi GA"</li>
+                                <li>Lihat hasil rekomendasi dan analisis di tab yang tersedia</li>
+                            </ol>
+                        </div>
+
+                        <div class="info-section">
+                            <h4>Referensi</h4>
+                            <ul>
+                                <li>Harper, F. M., & Konstan, J. A. (2015). The MovieLens Datasets.</li>
+                                <li>Goldberg, D. E. (1989). Genetic Algorithms in Search, Optimization, and Machine Learning.</li>
+                                <li>Pang-Ning, T., Steinbach, M., & Kumar, V. (2005). Introduction to Data Mining.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Optimasi Sistem Rekomendasi Film | Content-Based Filtering + Genetic Algorithm | 2026</p>
+        </footer>
+    </div>
+
+    <!-- Progress Modal -->
+    <div id="progressModal" class="modal">
+        <div class="modal-content">
+            <h3>Menjalankan Genetic Algorithm...</h3>
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <p id="progressText">Generasi: 0/0</p>
+        </div>
+    </div>
+
+    <!-- Load Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <!-- Load application scripts -->
+    <script src="data-loader.js"></script>
+    <script src="cosine-similarity.js"></script>
+    <script src="genetic-algorithm.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
